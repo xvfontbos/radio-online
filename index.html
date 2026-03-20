@@ -169,8 +169,8 @@
   <button onclick="openGlobalEdit()" title="Editar">✎</button>
   <button onclick="toggleIOMenu()" title="Exportar / Importar" id="io-btn">⇅</button>
   <div id="io-menu" style="display:none; position:absolute; background:#1a1a1a; border:1px solid #444; border-radius:4px; padding:4px; z-index:200; flex-direction:column; gap:4px;">
-    <button onclick="exportCSV(); toggleIOMenu()" title="Exportar">⬇</button>
-    <label for="import-input" onclick="toggleIOMenu()" title="Importar">⬆</label>
+    <button onclick="exportCSV(); toggleIOMenu()" title="Exportar">Exportar</button>
+    <label for="import-input" onclick="toggleIOMenu()" title="Importar">Importar</label>
   </div>
   <input type="file" id="import-input" accept=".csv,.txt" style="display:none" onchange="importCSV(this)">
   <button onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla completa</button>
