@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#111111"/>
+  <!-- Ones de ràdio -->
+  <path d="M40 96 Q40 50 96 50 Q152 50 152 96" fill="none" stroke="#c8a97e" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+  <path d="M55 96 Q55 65 96 65 Q137 65 137 96" fill="none" stroke="#c8a97e" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+  <path d="M70 96 Q70 80 96 80 Q122 80 122 96" fill="none" stroke="#c8a97e" stroke-width="6" stroke-linecap="round"/>
+  <!-- Punt central -->
+  <circle cx="96" cy="96" r="8" fill="#c8a97e"/>
+  <!-- Barra horitzontal antena -->
+  <line x1="96" y1="104" x2="96" y2="148" stroke="#c8a97e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="70" y1="148" x2="122" y2="148" stroke="#c8a97e" stroke-width="5" stroke-linecap="round"/>
+</svg>

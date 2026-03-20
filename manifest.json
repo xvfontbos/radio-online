@@ -1,0 +1,17 @@
+{
+  "name": "Ràdio",
+  "short_name": "Ràdio",
+  "description": "Reproductor de ràdio online",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

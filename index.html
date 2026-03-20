@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ràdio Personal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  /* ── ESTILS BASE ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Georgia, serif;
+    background: #1a1a1a;
+    color: #e0d8cc;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── TOOLBAR (ORDRE REVISAT) ── */
+  #toolbar {
+    background: #111;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+  }
+
+  #toolbar button {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #toolbar button:hover { color: #eee; border-color: #888; background: rgba(255,255,255,0.05); }
+  #toolbar label {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  #toolbar label:hover { color: #eee; border-color: #888; background: rgba(255,255,255,0.05); }
+  #app-title { flex: 1; font-size: 0.9rem; color: #777; font-family: sans-serif; }
+
+  /* ── LAYOUT ── */
+  #main { display: flex; flex: 1; overflow: hidden; }
+
+  .side-panel {
+    width: 250px;
+    background: #111;
+    border-right: 1px solid #333;
+    border-left: 1px solid #333;
+    overflow-y: auto;
+  }
+
+  /* Panell esquerre: text alineat a la dreta */
+  .side-panel:first-child .station-item { 
+    /* Eliminat flex-direction: row-reverse per controlar l'ordre per JS */
+    justify-content: flex-end; /* Alinea el contingut a la dreta */
+    text-align: right; 
+    border-left: none; 
+    border-right: 3px solid transparent; 
+  }
+  .side-panel:first-child .station-item.active { border-right-color: #c8a97e; border-left: none; }
+  .side-panel:first-child .list-section h3 { text-align: right; }
+  .side-panel:first-child .station-item span { text-align: right; }
+
+  #player-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* ── ESTAT DE CÀRREGA (ANIMACIÓ) ── */
+  .loading-text {
+    animation: pulse 1.5s infinite ease-in-out;
+    color: #c8a97e !important;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
+  /* ── EQUALITZADOR ── */
+  #wave-container { height: 60px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 15px; }
+  #wave { display: none; align-items: flex-end; gap: 4px; height: 40px; }
+  #wave.playing { display: flex; }
+  .wave-bar { width: 8px; background: #c8a97e; border-radius: 4px; animation: wave-anim ease-in-out infinite; }
+  .wave-bar:nth-child(1) { animation-duration: 0.8s;  animation-delay: 0s; }
+  .wave-bar:nth-child(2) { animation-duration: 1.1s;  animation-delay: 0.2s; }
+  .wave-bar:nth-child(3) { animation-duration: 0.7s;  animation-delay: 0.05s; }
+  .wave-bar:nth-child(4) { animation-duration: 0.95s; animation-delay: 0.3s; }
+  @keyframes wave-anim { 0%, 100% { height: 6px; opacity: 0.5; } 50% { height: 38px; opacity: 1; } }
+
+  /* ── TEXT REPRODUCTOR ── */
+  #now-name { font-size: 1.8rem; color: #f0e8dc; text-align: center; margin-bottom: 5px; min-height: 2.2rem; }
+  #now-status { font-size: 0.8rem; color: #777; font-family: sans-serif; margin-bottom: 30px; height: 1.2rem; }
+
+  /* ── CONTROLS ── */
+  #controls { display: flex; align-items: center; gap: 20px; }
+  #play-stop-btn {
+    background: transparent; border: 1px solid #c8a97e; color: #c8a97e;
+    padding: 10px 25px; border-radius: 4px; cursor: pointer; min-width: 140px; font-family: sans-serif;
+  }
+  #play-stop-btn:disabled { border-color: #444; color: #444; }
+
+  #volume-wrap { display: flex; align-items: center; gap: 10px; color: #777; font-family: sans-serif; font-size: 0.8rem; }
+  input[type="range"] { -webkit-appearance: none; width: 100px; height: 4px; background: #333; border-radius: 2px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #c8a97e; }
+
+  /* ── LLISTES ── */
+  .list-section h3 { padding: 12px 14px; font-size: 0.7rem; text-transform: uppercase; color: #555; font-family: sans-serif; border-bottom: 1px solid #1e1e1e; }
+  .station-item { padding: 10px 14px; cursor: pointer; border-left: 3px solid transparent; font-family: sans-serif; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px; }
+  .station-item span { flex: 1; text-align: left; }
+  .station-item:hover { background: #1a1a1a; }
+  .station-item.active { border-left-color: #c8a97e; background: #1a1a1a; color: #c8a97e; }
+  .s-del { color: #777; background: none; border: none; cursor: pointer; font-size: 0.9rem; opacity: 0.3; }
+  .station-item:hover .s-del { opacity: 1; }
+  .s-del:hover { color: #f44; }
+
+  /* ── DIÀLEGS ── */
+  #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10; }
+  #add-dialog { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; border: 1px solid #444; border-radius: 8px; z-index: 11; width: 300px; }
+  #add-dialog input { width: 100%; margin-bottom: 10px; padding: 8px; background: #111; border: 1px solid #444; color: #eee; }
+
+  /* TEMA CLAR */
+  body.light { background: #f5f0e8; color: #222; }
+  body.light #toolbar, body.light .side-panel { background: #e8e0d0; border-color: #ccc; }
+  body.light #now-name { color: #111; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <span id="app-title">Ràdio Personal</span>
+  
+  <button id="theme-btn" onclick="toggleTheme()" title="Canviar tema">☀</button>
+  <button onclick="showAddDialog()" title="Afegir emissora">+ Afegir</button>
+  <button onclick="resetHidden()" title="Restablir ràdios ocultes">↺</button>
+  <button onclick="openGlobalEdit()" title="Editar">✎</button>
+  <button onclick="toggleIOMenu()" title="Exportar / Importar" id="io-btn">⇅</button>
+  <div id="io-menu" style="display:none; position:absolute; background:#1a1a1a; border:1px solid #444; border-radius:4px; padding:4px; z-index:200; flex-direction:column; gap:4px;">
+    <button onclick="exportCSV(); toggleIOMenu()" title="Exportar">⬇</button>
+    <label for="import-input" onclick="toggleIOMenu()" title="Importar">⬆</label>
+  </div>
+  <input type="file" id="import-input" accept=".csv,.txt" style="display:none" onchange="importCSV(this)">
+  <button onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla completa</button>
+</div>
+
+<div id="overlay" onclick="hideAddDialog()"></div>
+<div id="add-dialog">
+  <h4 id="dialog-title" style="margin-bottom:15px; font-family:sans-serif;">Emissora</h4>
+  <input type="text" id="add-name" placeholder="Nom">
+  <input type="text" id="add-url" placeholder="URL del stream">
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button onclick="saveStation()" style="flex:1; padding:10px; background:#c8a97e; border:none; border-radius:4px; cursor:pointer;">Guardar</button>
+    <button onclick="hideAddDialog()" style="flex:1; padding:10px; background:#333; color:#ccc; border:none; border-radius:4px;">Sortir</button>
+  </div>
+</div>
+
+<div id="main">
+  <div class="side-panel">
+    <div class="list-section"><h3>Catalunya</h3><div id="list-cat"></div></div>
+    <div class="list-section"><h3>Altres ràdios</h3><div id="list-custom"></div></div>
+  </div>
+  <div id="player-area">
+    <div id="wave-container">
+      <div id="wave">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+    </div>
+    <div id="now-name">Selecciona emissora</div>
+    <div id="now-status">Pausa</div>
+    <div id="controls">
+      <button id="play-stop-btn" onclick="togglePlay()" disabled>▶ Reproduir</button>
+      <div id="volume-wrap">
+        <span>Vol</span>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" oninput="setVolume(this.value)">
+      </div>
+    </div>
+  </div>
+  <div class="side-panel">
+    <div class="list-section"><h3>Internacionals</h3><div id="list-inter"></div></div>
+  </div>
+</div>
+
+<audio id="radio-audio"></audio>
+
+<script>
+const audio = document.getElementById('radio-audio');
+const playBtn = document.getElementById('play-stop-btn');
+const nowName = document.getElementById('now-name');
+const nowStatus = document.getElementById('now-status');
+const wave = document.getElementById('wave');
+const volInput = document.getElementById('volume');
+
+let currentStation = null;
+let isPlaying = false;
+let editIndex = null;
+
+const CAT_STATIONS = [
+  { name: 'Catalunya Ràdio', url: 'https://shoutcast.ccma.cat/ccma/catalunyaradioHD.mp3' },
+  { name: 'Catalunya Info', url: 'https://shoutcast.ccma.cat/ccma/catalunyainformacioHD.mp3' },
+  { name: 'Catalunya Música', url: 'https://shoutcast.ccma.cat/ccma/catalunyamusicaHD.mp3' },
+  { name: 'iCat', url: 'https://shoutcast.ccma.cat/ccma/icatHD.mp3' },
+  { name: 'RAC1', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RAC_1.mp3' },
+  { name: 'RNE Radio Clásica', url: 'https://dispatcher.rndfnk.com/crtve/rnerc/main/mp3/high?aggregator=tunein' },
+  { name: 'RNE Radio 4', url: 'https://dispatcher.rndfnk.com/crtve/rner4/main/mp3/high?aggregator=tunein' }
+];
+
+const INTER_STATIONS = [
+  { name: 'France Inter', url: 'https://icecast.radiofrance.fr/franceinter-midfi.mp3' },
+  { name: 'France Bleu Roussillon', url: 'https://direct.francebleu.fr/live/fbroussillon-midfi.mp3' },
+  { name: 'France Culture', url: 'https://icecast.radiofrance.fr/franceculture-midfi.mp3' },
+  { name: 'France Musique', url: 'https://icecast.radiofrance.fr/francemusique-midfi.mp3' },
+  { name: 'France Musique ·classique easy·', url: 'http://radio.intergalactic.fm:80/2' },
+  { name: 'France Musique ·classique plus·', url: 'https://icecast.radiofrance.fr/francemusiqueclassiqueplus-midfi.mp3' },
+  { name: 'France Musique ·la baroque·', url: 'https://icecast.radiofrance.fr/francemusiquebaroque-midfi.mp3' },
+  { name: 'France Musique ·opéra·', url: 'https://icecast.radiofrance.fr/francemusiqueopera-midfi.mp3' },
+  { name: 'France Musique ·concerts·', url: 'https://icecast.radiofrance.fr/francemusiqueconcertsradiofrance-midfi.mp3' },
+  { name: 'France Musique ·la jazz·', url: 'https://icecast.radiofrance.fr/francemusiquelajazz-midfi.mp3' },
+  { name: 'France Musique ·la B.O.·', url: 'https://icecast.radiofrance.fr/francemusiquelabo-midfi.mp3' },
+  { name: 'Radio Classique', url: 'https://radioclassique.ice.infomaniak.ch/radioclassique-high.mp3' },
+  { name: 'BBC World Service', url: 'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service' },
+  { name: 'Sud Radio', url: 'http://start-sud.ice.infomaniak.ch/start-sud-high.aac' }
+];
+
+function renderList() {
+  const listCat = document.getElementById('list-cat');
+  const listInter = document.getElementById('list-inter');
+  const listCustom = document.getElementById('list-custom');
+  const hidden = JSON.parse(localStorage.getItem('radio_hidden') || '[]');
+  
+  listCat.innerHTML = ''; listInter.innerHTML = ''; listCustom.innerHTML = '';
+
+  CAT_STATIONS.forEach(s => { if (!hidden.includes(s.name)) listCat.appendChild(createItem(s, false, null, 'left')); });
+  INTER_STATIONS.forEach(s => { if (!hidden.includes(s.name)) listInter.appendChild(createItem(s, false, null, 'right')); });
+  
+  const custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+  custom.forEach((s, i) => listCustom.appendChild(createItem(s, true, i, 'left')));
+}
+
+function createItem(s, isCustom, index, side) {
+  const div = document.createElement('div');
+  div.className = 'station-item' + (currentStation?.name === s.name ? ' active' : '');
+  const delBtn = `<button class="s-del" onclick="event.stopPropagation(); ${isCustom ? `deleteStation(${index})` : `hideStation('${s.name}')`}" title="Ocultar/Eliminar">●</button>`;
+  const nameSpan = `<span>${s.name}</span>`;
+  
+  // MODIFICAT: Control d'ordre per Javascript segons el costat
+  if (side === 'left') {
+    // Al panell esquerre (Catalunya/Les meves), text primer, botó darrera (alienat a la dreta per CSS)
+    div.innerHTML = nameSpan + delBtn;
+  } else {
+    // Al panell dret (Internacionals), botó primer, text darrera
+    div.innerHTML = delBtn + nameSpan;
+  }
+  
+  div.onclick = () => {
+    currentStation = s;
+    renderList();
+    playStation(s);
+  };
+  return div;
+}
+
+function playStation(s) {
+  audio.src = s.url;
+  nowName.textContent = s.name;
+  nowStatus.textContent = 'Connectant...';
+  nowStatus.classList.add('loading-text');
+  wave.classList.remove('playing');
+  playBtn.disabled = false;
+  
+  audio.play().then(() => {
+    isPlaying = true;
+    playBtn.textContent = '■ Aturar';
+    wave.classList.add('playing');
+    nowStatus.textContent = 'En directe';
+    nowStatus.classList.remove('loading-text');
+  }).catch(() => {
+    nowStatus.textContent = 'Error de connexió';
+    nowStatus.classList.remove('loading-text');
+  });
+}
+
+function togglePlay() {
+  if (isPlaying) { audio.pause(); isPlaying = false; playBtn.textContent = '▶ Reproduir'; wave.classList.remove('playing'); nowStatus.textContent = 'Aturat'; }
+  else if (currentStation) { playStation(currentStation); }
+}
+
+function setVolume(v) {
+  const vol = Math.round(parseFloat(v) * 100) / 100;
+  audio.volume = vol;
+  volInput.value = vol;
+}
+
+// CONTROL PER TECLAT (ARREGLAT)
+window.addEventListener('keydown', (e) => {
+  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+  
+  if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(Math.min(1, audio.volume + 0.05)); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(Math.max(0, audio.volume - 0.05)); }
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+});
+
+/* ── PERSISTÈNCIA I FUNCIONS ── */
+function showAddDialog() { editIndex = null; document.getElementById('add-name').value = ''; document.getElementById('add-url').value = ''; document.getElementById('add-dialog').style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
+function hideAddDialog() { document.getElementById('add-dialog').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
+
+function openGlobalEdit() { 
+  const c = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+  if (c.length === 0) { alert("No hi ha emissores personalitzades per editar."); return; }
+  // Crear un selector d'emissores a editar
+  const idx = c.length === 1 ? 0 : parseInt(prompt(
+    c.map((s, i) => `${i+1}. ${s.name}`).join('\n') + '\n\nQuina vols editar? (número)'
+  )) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= c.length) return;
+  editIndex = idx;
+  document.getElementById('add-name').value = c[idx].name;
+  document.getElementById('add-url').value = c[idx].url;
+  document.getElementById('dialog-title').textContent = 'Editar emissora';
+  document.getElementById('add-dialog').style.display = 'block';
+  document.getElementById('overlay').style.display = 'block';
+}
+
+function saveStation() {
+  const n = document.getElementById('add-name').value;
+  const u = document.getElementById('add-url').value;
+  if(!n || !u) return;
+  let custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+  if (editIndex !== null) custom[editIndex] = {name: n, url: u};
+  else custom.push({name: n, url: u});
+  localStorage.setItem('radio_custom', JSON.stringify(custom));
+  renderList(); hideAddDialog();
+}
+
+function deleteStation(i) { let c = JSON.parse(localStorage.getItem('radio_custom') || '[]'); c.splice(i,1); localStorage.setItem('radio_custom', JSON.stringify(c)); renderList(); }
+function hideStation(name) { let h = JSON.parse(localStorage.getItem('radio_hidden') || '[]'); h.push(name); localStorage.setItem('radio_hidden', JSON.stringify(h)); renderList(); }
+function resetHidden() { localStorage.removeItem('radio_hidden'); renderList(); }
+
+// ── EXPORTAR CSV ──────────────────────────────────────
+function toggleIOMenu() {
+  const menu = document.getElementById('io-menu');
+  const btn  = document.getElementById('io-btn');
+  if (menu.style.display === 'none') {
+    const rect = btn.getBoundingClientRect();
+    menu.style.top  = (rect.bottom + 4) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.display = 'flex';
+  } else {
+    menu.style.display = 'none';
+  }
+}
+
+document.addEventListener('click', e => {
+  const menu = document.getElementById('io-menu');
+  const btn  = document.getElementById('io-btn');
+  if (menu.style.display !== 'none' && !menu.contains(e.target) && e.target !== btn) {
+    menu.style.display = 'none';
+  }
+});
+
+function exportCSV() {
+  const hidden = JSON.parse(localStorage.getItem('radio_hidden') || '[]');
+  const custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+
+  let csv = 'nom,url,grup\n';
+
+  // Emissores fixes visibles
+  CAT_STATIONS.forEach(s => {
+    if (!hidden.includes(s.name)) {
+      csv += `"${s.name}","${s.url}","Catalunya"\n`;
+    }
+  });
+  INTER_STATIONS.forEach(s => {
+    if (!hidden.includes(s.name)) {
+      csv += `"${s.name}","${s.url}","Internacional"\n`;
+    }
+  });
+
+  // Emissores personalitzades
+  custom.forEach(s => {
+    csv += `"${s.name}","${s.url}","Les meves"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'emissions_radio.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── IMPORTAR CSV ──────────────────────────────────────
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    // Saltar capçalera
+    const start = lines[0].toLowerCase().includes('nom') ? 1 : 0;
+    const custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+    let added = 0;
+    lines.slice(start).forEach(line => {
+      // Parsejar CSV amb cometes
+      const parts = line.match(/"([^"]*)"/g);
+      if (!parts || parts.length < 2) return;
+      const name = parts[0].replace(/"/g, '').trim();
+      const url  = parts[1].replace(/"/g, '').trim();
+      if (name && url) {
+        // Evitar duplicats
+        const exists = custom.some(s => s.url === url);
+        if (!exists) { custom.push({ name, url }); added++; }
+      }
+    });
+    localStorage.setItem('radio_custom', JSON.stringify(custom));
+    renderList();
+    alert(`Importades ${added} emissores noves.`);
+  };
+  reader.readAsText(file, 'UTF-8');
+  input.value = '';
+}
+
+function toggleTheme() { 
+  const isLight = document.body.classList.toggle('light'); 
+  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀';
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+renderList();
+</script>
+</body>
+</html>
