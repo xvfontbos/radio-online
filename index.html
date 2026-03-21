@@ -69,14 +69,26 @@
     overflow-y: auto;
   }
 
+  /* Panell esquerre: Alineació a la DRETA */
   .side-panel:first-child .station-item { 
     justify-content: flex-end; 
     text-align: right; 
     border-left: none; 
     border-right: 3px solid transparent; 
+    padding-right: 14px;
   }
   .side-panel:first-child .station-item.active { border-right-color: #c8a97e; border-left: none; }
   .side-panel:first-child .list-section h3 { text-align: right; }
+  .side-panel:first-child .station-item span { text-align: right; order: 1; }
+  .side-panel:first-child .station-item .s-del { order: 2; margin-left: 8px; }
+
+  /* Panell dret: Alineació a l'ESQUERRA (per defecte) */
+  .side-panel:last-child .station-item {
+    justify-content: flex-start;
+    text-align: left;
+    border-left: 3px solid transparent;
+  }
+  .side-panel:last-child .station-item.active { border-left-color: #c8a97e; }
 
   #player-area {
     flex: 1;
@@ -113,14 +125,13 @@
   #now-name { font-size: 1.8rem; color: #f0e8dc; text-align: center; margin-bottom: 5px; min-height: 2.2rem; }
   #now-status { font-size: 0.8rem; color: #777; font-family: sans-serif; margin-bottom: 30px; height: 1.2rem; }
 
-  /* ── CONTROLS MILLORATS ── */
+  /* ── CONTROLS FIXES ── */
   #controls { display: flex; align-items: center; gap: 20px; }
   
   #play-stop-btn {
     background: transparent; 
     border: 1px solid #c8a97e; 
     color: #c8a97e;
-    /* Mides fixes per evitar el salt visual */
     width: 160px; 
     height: 44px; 
     padding: 0;
@@ -147,10 +158,10 @@
 
   /* ── LLISTES ── */
   .list-section h3 { padding: 12px 14px; font-size: 0.7rem; text-transform: uppercase; color: #555; font-family: sans-serif; border-bottom: 1px solid #1e1e1e; }
-  .station-item { padding: 10px 14px; cursor: pointer; border-left: 3px solid transparent; font-family: sans-serif; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px; }
-  .station-item span { flex: 1; text-align: left; }
+  .station-item { padding: 10px 14px; cursor: pointer; font-family: sans-serif; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px; }
+  .station-item span { flex: 1; }
   .station-item:hover { background: #1a1a1a; color: #fff; }
-  .station-item.active { border-left-color: #c8a97e; background: #1a1a1a; color: #c8a97e; }
+  .station-item.active { background: #1a1a1a; color: #c8a97e; }
   .s-del { color: #777; background: none; border: none; cursor: pointer; font-size: 0.9rem; opacity: 0.3; }
   .station-item:hover .s-del { opacity: 1; }
   .s-del:hover { color: #f44; }
@@ -283,6 +294,7 @@ function createItem(s, isCustom, index, side) {
   const delBtn = `<button class="s-del" onclick="event.stopPropagation(); ${isCustom ? `deleteStation(${index})` : `hideStation('${s.name}')`}" title="Ocultar/Eliminar">●</button>`;
   const nameSpan = `<span>${s.name}</span>`;
   
+  // Per a l'esquerra, el botó va DESPRÉS del text per mantenir l'alineació a la dreta neta
   if (side === 'left') {
     div.innerHTML = nameSpan + delBtn;
   } else {
