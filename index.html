@@ -22,7 +22,7 @@
     transition: background 0.3s, color 0.3s;
   }
 
-  /* ── TOOLBAR ── */
+  /* ── TOOLBAR (ORDRE REVISAT) ── */
   #toolbar {
     background: #111;
     padding: 8px 14px;
@@ -33,7 +33,22 @@
     flex-shrink: 0;
   }
 
-  #toolbar button, #toolbar label {
+  #toolbar button {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #toolbar button:hover { color: #eee; border-color: #888; background: rgba(255,255,255,0.05); }
+  #toolbar label {
     height: 32px;
     padding: 0 12px;
     font-size: 0.85rem;
@@ -47,15 +62,8 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    transition: all 0.2s ease;
   }
-  
-  #toolbar button:hover, #toolbar label:hover { 
-    color: #fff; 
-    border-color: #c8a97e; 
-    background: rgba(200, 169, 126, 0.1); 
-  }
-
+  #toolbar label:hover { color: #eee; border-color: #888; background: rgba(255,255,255,0.05); }
   #app-title { flex: 1; font-size: 0.9rem; color: #777; font-family: sans-serif; }
 
   /* ── LAYOUT ── */
@@ -69,26 +77,17 @@
     overflow-y: auto;
   }
 
-  /* Panell esquerre: Alineació a la DRETA */
+  /* Panell esquerre: text alineat a la dreta */
   .side-panel:first-child .station-item { 
-    justify-content: flex-end; 
+    /* Eliminat flex-direction: row-reverse per controlar l'ordre per JS */
+    justify-content: flex-end; /* Alinea el contingut a la dreta */
     text-align: right; 
     border-left: none; 
     border-right: 3px solid transparent; 
-    padding-right: 14px;
   }
   .side-panel:first-child .station-item.active { border-right-color: #c8a97e; border-left: none; }
   .side-panel:first-child .list-section h3 { text-align: right; }
-  .side-panel:first-child .station-item span { text-align: right; order: 1; }
-  .side-panel:first-child .station-item .s-del { order: 2; margin-left: 8px; }
-
-  /* Panell dret: Alineació a l'ESQUERRA (per defecte) */
-  .side-panel:last-child .station-item {
-    justify-content: flex-start;
-    text-align: left;
-    border-left: 3px solid transparent;
-  }
-  .side-panel:last-child .station-item.active { border-left-color: #c8a97e; }
+  .side-panel:first-child .station-item span { text-align: right; }
 
   #player-area {
     flex: 1;
@@ -99,6 +98,7 @@
     padding: 20px;
   }
 
+  /* ── ESTAT DE CÀRREGA (ANIMACIÓ) ── */
   .loading-text {
     animation: pulse 1.5s infinite ease-in-out;
     color: #c8a97e !important;
@@ -125,32 +125,36 @@
   #now-name { font-size: 1.8rem; color: #f0e8dc; text-align: center; margin-bottom: 5px; min-height: 2.2rem; }
   #now-status { font-size: 0.8rem; color: #777; font-family: sans-serif; margin-bottom: 30px; height: 1.2rem; }
 
-  /* ── CONTROLS FIXES ── */
+  /* ── CONTROLS ── */
   #controls { display: flex; align-items: center; gap: 20px; }
-  
   #play-stop-btn {
-    background: transparent; 
-    border: 1px solid #c8a97e; 
-    color: #c8a97e;
-    width: 160px; 
-    height: 44px; 
-    padding: 0;
-    border-radius: 4px; 
-    cursor: pointer; 
-    font-family: sans-serif;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
+  background: transparent;
+  border: 1px solid #c8a97e;
+  color: #c8a97e;
   
-  #play-stop-btn:hover:not(:disabled) {
-    background: rgba(200, 169, 126, 0.15);
-    color: #fff;
-    border-color: #fff;
-  }
+  /* Dimensions fixes per evitar que es mogui (alt i ample) */
+  width: 160px; 
+  height: 42px; 
+  padding: 0;
+  
+  /* Centratge perfecte del contingut */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.2s ease; /* Transició suau pel color */
+}
 
-  #play-stop-btn:disabled { border-color: #444; color: #444; cursor: default; }
+#play-stop-btn:hover:not(:disabled) {
+  background: rgba(200, 169, 126, 0.15); /* Color terra molt suau */
+  color: #fff;
+  border-color: #fff;
+}
+  #play-stop-btn:disabled { border-color: #444; color: #444; }
 
   #volume-wrap { display: flex; align-items: center; gap: 10px; color: #777; font-family: sans-serif; font-size: 0.8rem; }
   input[type="range"] { -webkit-appearance: none; width: 100px; height: 4px; background: #333; border-radius: 2px; outline: none; }
@@ -158,10 +162,10 @@
 
   /* ── LLISTES ── */
   .list-section h3 { padding: 12px 14px; font-size: 0.7rem; text-transform: uppercase; color: #555; font-family: sans-serif; border-bottom: 1px solid #1e1e1e; }
-  .station-item { padding: 10px 14px; cursor: pointer; font-family: sans-serif; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px; }
-  .station-item span { flex: 1; }
-  .station-item:hover { background: #1a1a1a; color: #fff; }
-  .station-item.active { background: #1a1a1a; color: #c8a97e; }
+  .station-item { padding: 10px 14px; cursor: pointer; border-left: 3px solid transparent; font-family: sans-serif; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px; }
+  .station-item span { flex: 1; text-align: left; }
+  .station-item:hover { background: #1a1a1a; }
+  .station-item.active { border-left-color: #c8a97e; background: #1a1a1a; color: #c8a97e; }
   .s-del { color: #777; background: none; border: none; cursor: pointer; font-size: 0.9rem; opacity: 0.3; }
   .station-item:hover .s-del { opacity: 1; }
   .s-del:hover { color: #f44; }
@@ -201,15 +205,15 @@
   <input type="text" id="add-name" placeholder="Nom">
   <input type="text" id="add-url" placeholder="URL del stream">
   <div style="display:flex; gap:10px; margin-top:10px;">
-    <button onclick="saveStation()" style="flex:1; padding:10px; background:#c8a97e; border:none; border-radius:4px; cursor:pointer; color: #111; font-weight: bold;">Guardar</button>
-    <button onclick="hideAddDialog()" style="flex:1; padding:10px; background:#333; color:#ccc; border:none; border-radius:4px; cursor:pointer;">Sortir</button>
+    <button onclick="saveStation()" style="flex:1; padding:10px; background:#c8a97e; border:none; border-radius:4px; cursor:pointer;">Guardar</button>
+    <button onclick="hideAddDialog()" style="flex:1; padding:10px; background:#333; color:#ccc; border:none; border-radius:4px;">Sortir</button>
   </div>
 </div>
 
 <div id="main">
   <div class="side-panel">
     <div class="list-section"><h3>Catalunya</h3><div id="list-cat"></div></div>
-    <div class="list-section"><h3>Les meves</h3><div id="list-custom"></div></div>
+    <div class="list-section"><h3>Altres ràdios</h3><div id="list-custom"></div></div>
   </div>
   <div id="player-area">
     <div id="wave-container">
@@ -294,10 +298,12 @@ function createItem(s, isCustom, index, side) {
   const delBtn = `<button class="s-del" onclick="event.stopPropagation(); ${isCustom ? `deleteStation(${index})` : `hideStation('${s.name}')`}" title="Ocultar/Eliminar">●</button>`;
   const nameSpan = `<span>${s.name}</span>`;
   
-  // Per a l'esquerra, el botó va DESPRÉS del text per mantenir l'alineació a la dreta neta
+  // MODIFICAT: Control d'ordre per Javascript segons el costat
   if (side === 'left') {
+    // Al panell esquerre (Catalunya/Les meves), text primer, botó darrera (alienat a la dreta per CSS)
     div.innerHTML = nameSpan + delBtn;
   } else {
+    // Al panell dret (Internacionals), botó primer, text darrera
     div.innerHTML = delBtn + nameSpan;
   }
   
@@ -319,7 +325,7 @@ function playStation(s) {
   
   audio.play().then(() => {
     isPlaying = true;
-    playBtn.textContent = '■ Aturar';
+    playBtn.textContent = 'Aturar';
     wave.classList.add('playing');
     nowStatus.textContent = 'En directe';
     nowStatus.classList.remove('loading-text');
@@ -330,15 +336,8 @@ function playStation(s) {
 }
 
 function togglePlay() {
-  if (isPlaying) { 
-    audio.pause(); 
-    isPlaying = false; 
-    playBtn.textContent = '▶ Reproduir'; 
-    wave.classList.remove('playing'); 
-    nowStatus.textContent = 'Aturat'; 
-  } else if (currentStation) { 
-    playStation(currentStation); 
-  }
+  if (isPlaying) { audio.pause(); isPlaying = false; playBtn.textContent = 'Reproduir'; wave.classList.remove('playing'); nowStatus.textContent = 'Aturat'; }
+  else if (currentStation) { playStation(currentStation); }
 }
 
 function setVolume(v) {
@@ -347,30 +346,23 @@ function setVolume(v) {
   volInput.value = vol;
 }
 
+// CONTROL PER TECLAT 
 window.addEventListener('keydown', (e) => {
   if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+  
   if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(Math.min(1, audio.volume + 0.05)); }
   if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(Math.max(0, audio.volume - 0.05)); }
   if (e.key === ' ') { e.preventDefault(); togglePlay(); }
 });
 
-function showAddDialog() { 
-  editIndex = null; 
-  document.getElementById('dialog-title').textContent = 'Afegir emissora';
-  document.getElementById('add-name').value = ''; 
-  document.getElementById('add-url').value = ''; 
-  document.getElementById('add-dialog').style.display = 'block'; 
-  document.getElementById('overlay').style.display = 'block'; 
-}
-
-function hideAddDialog() { 
-  document.getElementById('add-dialog').style.display = 'none'; 
-  document.getElementById('overlay').style.display = 'none'; 
-}
+/* ── PERSISTÈNCIA I FUNCIONS ── */
+function showAddDialog() { editIndex = null; document.getElementById('add-name').value = ''; document.getElementById('add-url').value = ''; document.getElementById('add-dialog').style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
+function hideAddDialog() { document.getElementById('add-dialog').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
 
 function openGlobalEdit() { 
   const c = JSON.parse(localStorage.getItem('radio_custom') || '[]');
   if (c.length === 0) { alert("No hi ha emissores personalitzades per editar."); return; }
+  // Crear un selector d'emissores a editar
   const idx = c.length === 1 ? 0 : parseInt(prompt(
     c.map((s, i) => `${i+1}. ${s.name}`).join('\n') + '\n\nQuina vols editar? (número)'
   )) - 1;
@@ -394,27 +386,11 @@ function saveStation() {
   renderList(); hideAddDialog();
 }
 
-function deleteStation(i) { 
-  if(confirm("Segur que vols eliminar aquesta emissora?")) {
-    let c = JSON.parse(localStorage.getItem('radio_custom') || '[]'); 
-    c.splice(i,1); 
-    localStorage.setItem('radio_custom', JSON.stringify(c)); 
-    renderList(); 
-  }
-}
+function deleteStation(i) { let c = JSON.parse(localStorage.getItem('radio_custom') || '[]'); c.splice(i,1); localStorage.setItem('radio_custom', JSON.stringify(c)); renderList(); }
+function hideStation(name) { let h = JSON.parse(localStorage.getItem('radio_hidden') || '[]'); h.push(name); localStorage.setItem('radio_hidden', JSON.stringify(h)); renderList(); }
+function resetHidden() { localStorage.removeItem('radio_hidden'); renderList(); }
 
-function hideStation(name) { 
-  let h = JSON.parse(localStorage.getItem('radio_hidden') || '[]'); 
-  h.push(name); 
-  localStorage.setItem('radio_hidden', JSON.stringify(h)); 
-  renderList(); 
-}
-
-function resetHidden() { 
-  localStorage.removeItem('radio_hidden'); 
-  renderList(); 
-}
-
+// ── EXPORTAR CSV ──────────────────────────────────────
 function toggleIOMenu() {
   const menu = document.getElementById('io-menu');
   const btn  = document.getElementById('io-btn');
@@ -439,10 +415,26 @@ document.addEventListener('click', e => {
 function exportCSV() {
   const hidden = JSON.parse(localStorage.getItem('radio_hidden') || '[]');
   const custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
+
   let csv = 'nom,url,grup\n';
-  CAT_STATIONS.forEach(s => { if (!hidden.includes(s.name)) csv += `"${s.name}","${s.url}","Catalunya"\n`; });
-  INTER_STATIONS.forEach(s => { if (!hidden.includes(s.name)) csv += `"${s.name}","${s.url}","Internacional"\n`; });
-  custom.forEach(s => { csv += `"${s.name}","${s.url}","Les meves"\n`; });
+
+  // Emissores fixes visibles
+  CAT_STATIONS.forEach(s => {
+    if (!hidden.includes(s.name)) {
+      csv += `"${s.name}","${s.url}","Catalunya"\n`;
+    }
+  });
+  INTER_STATIONS.forEach(s => {
+    if (!hidden.includes(s.name)) {
+      csv += `"${s.name}","${s.url}","Internacional"\n`;
+    }
+  });
+
+  // Emissores personalitzades
+  custom.forEach(s => {
+    csv += `"${s.name}","${s.url}","Les meves"\n`;
+  });
+
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -452,21 +444,25 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+// ── IMPORTAR CSV ──────────────────────────────────────
 function importCSV(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     const lines = e.target.result.split('\n').filter(l => l.trim());
+    // Saltar capçalera
     const start = lines[0].toLowerCase().includes('nom') ? 1 : 0;
     const custom = JSON.parse(localStorage.getItem('radio_custom') || '[]');
     let added = 0;
     lines.slice(start).forEach(line => {
+      // Parsejar CSV amb cometes
       const parts = line.match(/"([^"]*)"/g);
       if (!parts || parts.length < 2) return;
       const name = parts[0].replace(/"/g, '').trim();
       const url  = parts[1].replace(/"/g, '').trim();
       if (name && url) {
+        // Evitar duplicats
         const exists = custom.some(s => s.url === url);
         if (!exists) { custom.push({ name, url }); added++; }
       }
